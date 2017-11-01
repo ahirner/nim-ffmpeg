@@ -1,0 +1,19 @@
+#skipcomments
+#cdecl
+
+#def attribute_deprecated
+
+#def av_pure
+#def av_warn_unused_result
+#def av_const
+#def av_always_inline
+#def av_alias
+
+#def DECLARE_ALIGNED(n,t,v) __noop(n,t,v)  __noop()
+#def av_printf_format(x,y)
+#def av_printf_format(x,y) __noop()
+
+#def intptr_t int*
+
+#discardableprefix av_strerror
+
