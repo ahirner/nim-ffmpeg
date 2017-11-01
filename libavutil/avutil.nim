@@ -36,8 +36,8 @@ type
 proc av_get_picture_type_char*(pict_type: AVPictureType): char {.cdecl,
     importc: "av_get_picture_type_char", dynlib: avutildll.}
 
-#proc av_x_if_null*(p: pointer; x: pointer): pointer {.inline, cdecl.} =
-#  return cast[pointer](cast[ptr cint]((if p: p else: x)))
+proc av_x_if_null*(p: pointer; x: pointer): pointer {.inline, cdecl.} =
+  return cast[pointer](cast[ptr cint]((if p: p else: x)))
 
 proc av_int_list_length_for_size*(elsize: cuint; list: pointer; term: uint64_t): cuint {.
     cdecl, importc: "av_int_list_length_for_size", dynlib: avutildll.}

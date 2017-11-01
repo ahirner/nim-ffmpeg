@@ -155,164 +155,6 @@ const
   AV_CODEC_ID_DVD_SUBTITLE = AV_CODEC_ID_FIRST_SUBTITLE
   AV_CODEC_ID_TTF = AV_CODEC_ID_FIRST_UNKNOWN
 
-
-type
-  AVPacketSideDataType* {.size: sizeof(cint).} = enum
-    AV_PKT_DATA_PALETTE, AV_PKT_DATA_NEW_EXTRADATA, AV_PKT_DATA_PARAM_CHANGE,
-    AV_PKT_DATA_H263_MB_INFO, AV_PKT_DATA_REPLAYGAIN, AV_PKT_DATA_DISPLAYMATRIX,
-    AV_PKT_DATA_STEREO3D, AV_PKT_DATA_AUDIO_SERVICE_TYPE,
-    AV_PKT_DATA_QUALITY_STATS, AV_PKT_DATA_FALLBACK_TRACK,
-    AV_PKT_DATA_CPB_PROPERTIES, AV_PKT_DATA_SKIP_SAMPLES = 70,
-    AV_PKT_DATA_JP_DUALMONO, AV_PKT_DATA_STRINGS_METADATA,
-    AV_PKT_DATA_SUBTITLE_POSITION, AV_PKT_DATA_MATROSKA_BLOCKADDITIONAL,
-    AV_PKT_DATA_WEBVTT_IDENTIFIER, AV_PKT_DATA_WEBVTT_SETTINGS,
-    AV_PKT_DATA_METADATA_UPDATE, AV_PKT_DATA_MPEGTS_STREAM_ID,
-    AV_PKT_DATA_MASTERING_DISPLAY_METADATA, AV_PKT_DATA_SPHERICAL, AV_PKT_DATA_NB
-
-
-
-  AVFieldOrder* {.size: sizeof(cint).} = enum
-    AV_FIELD_UNKNOWN, AV_FIELD_PROGRESSIVE, AV_FIELD_TT, AV_FIELD_BB, AV_FIELD_TB,
-    AV_FIELD_BT
-
-  MpegEncContext* {.bycopy.} = object
-  
-  AVHWAccel* {.bycopy.} = object
-    name*: cstring
-    `type`*: AVMediaType
-    id*: AVCodecID
-    pix_fmt*: AVPixelFormat
-    capabilities*: cint
-    next*: ptr AVHWAccel
-    alloc_frame*: proc (avctx: ptr AVCodecContext; frame: ptr AVFrame): cint {.cdecl.}
-    start_frame*: proc (avctx: ptr AVCodecContext; buf: ptr uint8_t; buf_size: uint32_t): cint {.
-        cdecl.}
-    decode_slice*: proc (avctx: ptr AVCodecContext; buf: ptr uint8_t; buf_size: uint32_t): cint {.
-        cdecl.}
-    end_frame*: proc (avctx: ptr AVCodecContext): cint {.cdecl.}
-    frame_priv_data_size*: cint
-    decode_mb*: proc (s: ptr MpegEncContext) {.cdecl.}
-    init*: proc (avctx: ptr AVCodecContext): cint {.cdecl.}
-    uninit*: proc (avctx: ptr AVCodecContext): cint {.cdecl.}
-    priv_data_size*: cint
-    caps_internal*: cint
-
-  AVSubtitleType* {.size: sizeof(cint).} = enum
-    SUBTITLE_NONE, SUBTITLE_BITMAP, SUBTITLE_TEXT, SUBTITLE_ASS
-
-
-type
-
-  AVProfile* {.bycopy.} = object
-    profile*: cint
-    name*: cstring
-  
-type
-  AVPacketSideData* {.bycopy.} = object
-    data*: ptr uint8_t
-    size*: cint
-    `type`*: AVPacketSideDataType
-
-  AVPacket* {.bycopy.} = object
-    buf*: ptr AVBufferRef
-    pts*: int64_t
-    dts*: int64_t
-    data*: ptr uint8_t
-    size*: cint
-    stream_index*: cint
-    flags*: cint
-    side_data*: ptr AVPacketSideData
-    side_data_elems*: cint
-    duration*: int64_t
-    pos*: int64_t
-
-  AVCodec* {.bycopy.} = object
-    name*: cstring
-    long_name*: cstring
-    `type`*: AVMediaType
-    id*: AVCodecID
-    capabilities*: cint
-    supported_framerates*: ptr AVRational
-    pix_fmts*: ptr AVPixelFormat
-    supported_samplerates*: ptr cint
-    sample_fmts*: ptr AVSampleFormat
-    channel_layouts*: ptr uint64_t
-    max_lowres*: uint8_t
-    priv_class*: ptr AVClass
-    profiles*: ptr AVProfile
-    priv_data_size*: cint
-    next*: ptr AVCodec
-    init_thread_copy*: proc (a2: ptr AVCodecContext): cint {.cdecl.}
-    update_thread_context*: proc (dst: ptr AVCodecContext; src: ptr AVCodecContext): cint {.
-        cdecl.}
-    defaults*: ptr AVCodecDefault
-    init_static_data*: proc (codec: ptr AVCodec) {.cdecl.}
-    init*: proc (a2: ptr AVCodecContext): cint {.cdecl.}
-    encode_sub*: proc (a2: ptr AVCodecContext; buf: ptr uint8_t; buf_size: cint;
-                     sub: ptr AVSubtitle): cint {.cdecl.}
-    encode2*: proc (avctx: ptr AVCodecContext; avpkt: ptr AVPacket; frame: ptr AVFrame;
-                  got_packet_ptr: ptr cint): cint {.cdecl.}
-    decode*: proc (a2: ptr AVCodecContext; outdata: pointer; outdata_size: ptr cint;
-                 avpkt: ptr AVPacket): cint {.cdecl.}
-    close*: proc (a2: ptr AVCodecContext): cint {.cdecl.}
-    send_frame*: proc (avctx: ptr AVCodecContext; frame: ptr AVFrame): cint {.cdecl.}
-    send_packet*: proc (avctx: ptr AVCodecContext; avpkt: ptr AVPacket): cint {.cdecl.}
-    receive_frame*: proc (avctx: ptr AVCodecContext; frame: ptr AVFrame): cint {.cdecl.}
-    receive_packet*: proc (avctx: ptr AVCodecContext; avpkt: ptr AVPacket): cint {.cdecl.}
-    flush*: proc (a2: ptr AVCodecContext) {.cdecl.}
-    caps_internal*: cint
-  AVSubtitleRect* {.bycopy.} = object
-    x*: cint
-    y*: cint
-    w*: cint
-    h*: cint
-    nb_colors*: cint
-    data*: array[4, ptr uint8_t]
-    linesize*: array[4, cint]
-    `type`*: AVSubtitleType
-    text*: cstring
-    ass*: cstring
-    flags*: cint
-
-  AVSubtitle* {.bycopy.} = object
-    format*: uint16_t
-    start_display_time*: uint32_t
-    end_display_time*: uint32_t
-    num_rects*: cuint
-    rects*: ptr ptr AVSubtitleRect
-    pts*: int64_t
-
-  AVCodecParameters* {.bycopy.} = object
-    codec_type*: AVMediaType
-    codec_id*: AVCodecID
-    codec_tag*: uint32_t
-    extradata*: ptr uint8_t
-    extradata_size*: cint
-    format*: cint
-    bit_rate*: int64_t
-    bits_per_coded_sample*: cint
-    bits_per_raw_sample*: cint
-    profile*: cint
-    level*: cint
-    width*: cint
-    height*: cint
-    sample_aspect_ratio*: AVRational
-    field_order*: AVFieldOrder
-    color_range*: AVColorRange
-    color_primaries*: AVColorPrimaries
-    color_trc*: AVColorTransferCharacteristic
-    color_space*: AVColorSpace
-    chroma_location*: AVChromaLocation
-    video_delay*: cint
-    channel_layout*: uint64_t
-    channels*: cint
-    sample_rate*: cint
-    block_align*: cint
-    frame_size*: cint
-    initial_padding*: cint
-    trailing_padding*: cint
-    seek_preroll*: cint
-
 type
   AVCodecDescriptor* {.bycopy.} = object
     id*: AVCodecID
@@ -359,7 +201,37 @@ type
     buffer_size*: cint
     vbv_delay*: uint64_t
 
+  AVPacketSideDataType* {.size: sizeof(cint).} = enum
+    AV_PKT_DATA_PALETTE, AV_PKT_DATA_NEW_EXTRADATA, AV_PKT_DATA_PARAM_CHANGE,
+    AV_PKT_DATA_H263_MB_INFO, AV_PKT_DATA_REPLAYGAIN, AV_PKT_DATA_DISPLAYMATRIX,
+    AV_PKT_DATA_STEREO3D, AV_PKT_DATA_AUDIO_SERVICE_TYPE,
+    AV_PKT_DATA_QUALITY_STATS, AV_PKT_DATA_FALLBACK_TRACK,
+    AV_PKT_DATA_CPB_PROPERTIES, AV_PKT_DATA_SKIP_SAMPLES = 70,
+    AV_PKT_DATA_JP_DUALMONO, AV_PKT_DATA_STRINGS_METADATA,
+    AV_PKT_DATA_SUBTITLE_POSITION, AV_PKT_DATA_MATROSKA_BLOCKADDITIONAL,
+    AV_PKT_DATA_WEBVTT_IDENTIFIER, AV_PKT_DATA_WEBVTT_SETTINGS,
+    AV_PKT_DATA_METADATA_UPDATE, AV_PKT_DATA_MPEGTS_STREAM_ID,
+    AV_PKT_DATA_MASTERING_DISPLAY_METADATA, AV_PKT_DATA_SPHERICAL, AV_PKT_DATA_NB
 
+
+type
+  AVPacketSideData* {.bycopy.} = object
+    data*: ptr uint8_t
+    size*: cint
+    `type`*: AVPacketSideDataType
+
+  AVPacket* {.bycopy.} = object
+    buf*: ptr AVBufferRef
+    pts*: int64_t
+    dts*: int64_t
+    data*: ptr uint8_t
+    size*: cint
+    stream_index*: cint
+    flags*: cint
+    side_data*: ptr AVPacketSideData
+    side_data_elems*: cint
+    duration*: int64_t
+    pos*: int64_t
 
   AVSideDataParamChangeFlags* {.size: sizeof(cint).} = enum
     AV_SIDE_DATA_PARAM_CHANGE_CHANNEL_COUNT = 0x00000001,
@@ -371,7 +243,9 @@ type
 type
   AVCodecInternal* {.bycopy.} = object
   
-
+  AVFieldOrder* {.size: sizeof(cint).} = enum
+    AV_FIELD_UNKNOWN, AV_FIELD_PROGRESSIVE, AV_FIELD_TT, AV_FIELD_BB, AV_FIELD_TB,
+    AV_FIELD_BT
 
 
 type
@@ -564,10 +438,131 @@ proc av_codec_get_chroma_intra_matrix*(avctx: ptr AVCodecContext): ptr uint16_t 
     cdecl, importc: "av_codec_get_chroma_intra_matrix", dynlib: avcodecdll.}
 proc av_codec_set_chroma_intra_matrix*(avctx: ptr AVCodecContext; val: ptr uint16_t) {.
     cdecl, importc: "av_codec_set_chroma_intra_matrix", dynlib: avcodecdll.}
+type
+  AVProfile* {.bycopy.} = object
+    profile*: cint
+    name*: cstring
+
+  AVSubtitle* {.bycopy.} = object
+  
+  AVCodec* {.bycopy.} = object
+    name*: cstring
+    long_name*: cstring
+    `type`*: AVMediaType
+    id*: AVCodecID
+    capabilities*: cint
+    supported_framerates*: ptr AVRational
+    pix_fmts*: ptr AVPixelFormat
+    supported_samplerates*: ptr cint
+    sample_fmts*: ptr AVSampleFormat
+    channel_layouts*: ptr uint64_t
+    max_lowres*: uint8_t
+    priv_class*: ptr AVClass
+    profiles*: ptr AVProfile
+    priv_data_size*: cint
+    next*: ptr AVCodec
+    init_thread_copy*: proc (a2: ptr AVCodecContext): cint {.cdecl.}
+    update_thread_context*: proc (dst: ptr AVCodecContext; src: ptr AVCodecContext): cint {.
+        cdecl.}
+    defaults*: ptr AVCodecDefault
+    init_static_data*: proc (codec: ptr AVCodec) {.cdecl.}
+    init*: proc (a2: ptr AVCodecContext): cint {.cdecl.}
+    encode_sub*: proc (a2: ptr AVCodecContext; buf: ptr uint8_t; buf_size: cint;
+                     sub: ptr AVSubtitle): cint {.cdecl.}
+    encode2*: proc (avctx: ptr AVCodecContext; avpkt: ptr AVPacket; frame: ptr AVFrame;
+                  got_packet_ptr: ptr cint): cint {.cdecl.}
+    decode*: proc (a2: ptr AVCodecContext; outdata: pointer; outdata_size: ptr cint;
+                 avpkt: ptr AVPacket): cint {.cdecl.}
+    close*: proc (a2: ptr AVCodecContext): cint {.cdecl.}
+    send_frame*: proc (avctx: ptr AVCodecContext; frame: ptr AVFrame): cint {.cdecl.}
+    send_packet*: proc (avctx: ptr AVCodecContext; avpkt: ptr AVPacket): cint {.cdecl.}
+    receive_frame*: proc (avctx: ptr AVCodecContext; frame: ptr AVFrame): cint {.cdecl.}
+    receive_packet*: proc (avctx: ptr AVCodecContext; avpkt: ptr AVPacket): cint {.cdecl.}
+    flush*: proc (a2: ptr AVCodecContext) {.cdecl.}
+    caps_internal*: cint
 
 
 proc av_codec_get_max_lowres*(codec: ptr AVCodec): cint {.cdecl,
     importc: "av_codec_get_max_lowres", dynlib: avcodecdll.}
+type
+  MpegEncContext* {.bycopy.} = object
+  
+  AVHWAccel* {.bycopy.} = object
+    name*: cstring
+    `type`*: AVMediaType
+    id*: AVCodecID
+    pix_fmt*: AVPixelFormat
+    capabilities*: cint
+    next*: ptr AVHWAccel
+    alloc_frame*: proc (avctx: ptr AVCodecContext; frame: ptr AVFrame): cint {.cdecl.}
+    start_frame*: proc (avctx: ptr AVCodecContext; buf: ptr uint8_t; buf_size: uint32_t): cint {.
+        cdecl.}
+    decode_slice*: proc (avctx: ptr AVCodecContext; buf: ptr uint8_t; buf_size: uint32_t): cint {.
+        cdecl.}
+    end_frame*: proc (avctx: ptr AVCodecContext): cint {.cdecl.}
+    frame_priv_data_size*: cint
+    decode_mb*: proc (s: ptr MpegEncContext) {.cdecl.}
+    init*: proc (avctx: ptr AVCodecContext): cint {.cdecl.}
+    uninit*: proc (avctx: ptr AVCodecContext): cint {.cdecl.}
+    priv_data_size*: cint
+    caps_internal*: cint
+
+  AVSubtitleType* {.size: sizeof(cint).} = enum
+    SUBTITLE_NONE, SUBTITLE_BITMAP, SUBTITLE_TEXT, SUBTITLE_ASS
+
+
+type
+  AVSubtitleRect* {.bycopy.} = object
+    x*: cint
+    y*: cint
+    w*: cint
+    h*: cint
+    nb_colors*: cint
+    data*: array[4, ptr uint8_t]
+    linesize*: array[4, cint]
+    `type`*: AVSubtitleType
+    text*: cstring
+    ass*: cstring
+    flags*: cint
+
+  AVSubtitle* {.bycopy.} = object
+    format*: uint16_t
+    start_display_time*: uint32_t
+    end_display_time*: uint32_t
+    num_rects*: cuint
+    rects*: ptr ptr AVSubtitleRect
+    pts*: int64_t
+
+  AVCodecParameters* {.bycopy.} = object
+    codec_type*: AVMediaType
+    codec_id*: AVCodecID
+    codec_tag*: uint32_t
+    extradata*: ptr uint8_t
+    extradata_size*: cint
+    format*: cint
+    bit_rate*: int64_t
+    bits_per_coded_sample*: cint
+    bits_per_raw_sample*: cint
+    profile*: cint
+    level*: cint
+    width*: cint
+    height*: cint
+    sample_aspect_ratio*: AVRational
+    field_order*: AVFieldOrder
+    color_range*: AVColorRange
+    color_primaries*: AVColorPrimaries
+    color_trc*: AVColorTransferCharacteristic
+    color_space*: AVColorSpace
+    chroma_location*: AVChromaLocation
+    video_delay*: cint
+    channel_layout*: uint64_t
+    channels*: cint
+    sample_rate*: cint
+    block_align*: cint
+    frame_size*: cint
+    initial_padding*: cint
+    trailing_padding*: cint
+    seek_preroll*: cint
 
 
 proc av_codec_next*(c: ptr AVCodec): ptr AVCodec {.cdecl, importc: "av_codec_next",

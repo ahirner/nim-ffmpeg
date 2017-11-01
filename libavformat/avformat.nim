@@ -9,45 +9,21 @@ else:
   const
     avformatdll* = "libavformat.so"
 import
-  ../nim_ffmpeg_common, ../libavcodec/avcodec, ../libavutil/dict, avio, ../libavutil/frame, ../libavutil/avutil
+  ../nim_ffmpeg_common, ../libavcodec/avcodec, ../libavutil/dict, avio
 
 
 type
-
-
-  AVStreamParseType* {.size: sizeof(cint).} = enum
-    AVSTREAM_PARSE_NONE, AVSTREAM_PARSE_FULL, AVSTREAM_PARSE_HEADERS,
-    AVSTREAM_PARSE_TIMESTAMPS, AVSTREAM_PARSE_FULL_ONCE,
-    #AVSTREAM_PARSE_FULL_RAW = MKTAG(0, 'R', 'A', 'W')
-
-
-type
-  INNER_C_STRUCT_2008934761* {.bycopy.} = object
-    last_dts*: int64_t
-    duration_gcd*: int64_t
-    duration_count*: cint
-    rfps_duration_sum*: int64_t
-    duration_error*: array[2, array[(30 * 12 + 30 + 3 + 6), cdouble]]
-    codec_info_duration*: int64_t
-    codec_info_duration_fields*: int64_t
-    found_decoder*: cint
-    last_duration*: int64_t
-    fps_first_dts*: int64_t
-    fps_first_dts_idx*: cint
-    fps_last_dts*: int64_t
-    fps_last_dts_idx*: cint
-
-  AVIndexEntry* {.bycopy.} = object
-    pos*: int64_t
-    timestamp*: int64_t
-    flags* {.bitsize: 2.}: cint
-    size* {.bitsize: 30.}: cint
-    min_distance*: cint
+  AVFormatContext* {.bycopy.} = object
   
-  AVPacketList* {.bycopy.} = object
-    pkt*: AVPacket
-    next*: ptr AVPacketList
+  AVDeviceInfoList* {.bycopy.} = object
+  
+  AVDeviceCapabilitiesQuery* {.bycopy.} = object
+  
 
+proc av_get_packet*(s: ptr AVIOContext; pkt: ptr AVPacket; size: cint): cint {.cdecl,
+    importc: "av_get_packet", dynlib: avformatdll.}
+proc av_append_packet*(s: ptr AVIOContext; pkt: ptr AVPacket; size: cint): cint {.cdecl,
+    importc: "av_append_packet", dynlib: avformatdll.}
 type
   AVCodecTag* {.bycopy.} = object
   
@@ -57,98 +33,9 @@ type
     buf_size*: cint
     mime_type*: cstring
 
-  AVStream* {.bycopy.} = object
-    index*: cint
-    id*: cint
-    priv_data*: pointer
-    time_base*: AVRational
-    start_time*: int64_t
-    duration*: int64_t
-    nb_frames*: int64_t
-    disposition*: cint
-    `discard`*: AVDiscard
-    sample_aspect_ratio*: AVRational
-    metadata*: ptr AVDictionary
-    avg_frame_rate*: AVRational
-    attached_pic*: AVPacket
-    side_data*: ptr AVPacketSideData
-    nb_side_data*: cint
-    event_flags*: cint
-    info*: ptr INNER_C_STRUCT_2008934761
-    pts_wrap_bits*: cint
-    first_dts*: int64_t
-    cur_dts*: int64_t
-    last_IP_pts*: int64_t
-    last_IP_duration*: cint
-    probe_packets*: cint
-    codec_info_nb_frames*: cint
-    need_parsing*: AVStreamParseType
-    parser*: ptr AVCodecParserContext
-    last_in_packet_buffer*: ptr AVPacketList
-    probe_data*: AVProbeData
-    pts_buffer*: array[16 + 1, int64_t]
-    index_entries*: ptr AVIndexEntry
-    nb_index_entries*: cint
-    index_entries_allocated_size*: cuint
-    r_frame_rate*: AVRational
-    stream_identifier*: cint
-    interleaver_chunk_size*: int64_t
-    interleaver_chunk_duration*: int64_t
-    request_probe*: cint
-    skip_to_keyframe*: cint
-    skip_samples*: cint
-    start_skip_samples*: int64_t
-    first_discard_sample*: int64_t
-    last_discard_sample*: int64_t
-    nb_decoded_frames*: cint
-    mux_ts_offset*: int64_t
-    pts_wrap_reference*: int64_t
-    pts_wrap_behavior*: cint
-    update_initial_durations_done*: cint
-    pts_reorder_error*: array[16 + 1, int64_t]
-    pts_reorder_error_count*: array[16 + 1, uint8_t]
-    last_dts_for_order_check*: int64_t
-    dts_ordered*: uint8_t
-    dts_misordered*: uint8_t
-    inject_global_side_data*: cint
-    recommended_encoder_configuration*: cstring
-    display_aspect_ratio*: AVRational
-    priv_pts*: ptr FFFrac
-    internal*: ptr AVStreamInternal
-    codecpar*: ptr AVCodecParameters
-
-
 
 
 type
-  AVProgram* {.bycopy.} = object
-    id*: cint
-    flags*: cint
-    `discard`*: AVDiscard
-    stream_index*: ptr cuint
-    nb_stream_indexes*: cuint
-    metadata*: ptr AVDictionary
-    program_num*: cint
-    pmt_pid*: cint
-    pcr_pid*: cint
-    start_time*: int64_t
-    end_time*: int64_t
-    pts_wrap_reference*: int64_t
-    pts_wrap_behavior*: cint
-
-  AVChapter* {.bycopy.} = object
-    id*: cint
-    time_base*: AVRational
-    start*: int64_t
-    `end`*: int64_t
-    metadata*: ptr AVDictionary
-
-  AVDurationEstimationMethod* {.size: sizeof(cint).} = enum
-    AVFMT_DURATION_FROM_PTS, AVFMT_DURATION_FROM_STREAM,
-    AVFMT_DURATION_FROM_BITRATE
-    
-  AVDeviceInfoList* {.bycopy.} = object
-
   AVOutputFormat* {.bycopy.} = object
     name*: cstring
     long_name*: cstring
@@ -219,7 +106,144 @@ type
                                    caps: ptr AVDeviceCapabilitiesQuery): cint {.
         cdecl.}
 
+  AVStreamParseType* {.size: sizeof(cint).} = enum
+    AVSTREAM_PARSE_NONE, AVSTREAM_PARSE_FULL, AVSTREAM_PARSE_HEADERS,
+    AVSTREAM_PARSE_TIMESTAMPS, AVSTREAM_PARSE_FULL_ONCE,
+    AVSTREAM_PARSE_FULL_RAW = MKTAG(0, 'R', 'A', 'W')
 
+
+type
+  INNER_C_STRUCT_2008934761* {.bycopy.} = object
+    last_dts*: int64_t
+    duration_gcd*: int64_t
+    duration_count*: cint
+    rfps_duration_sum*: int64_t
+    duration_error*: array[2, array[(30 * 12 + 30 + 3 + 6), cdouble]]
+    codec_info_duration*: int64_t
+    codec_info_duration_fields*: int64_t
+    found_decoder*: cint
+    last_duration*: int64_t
+    fps_first_dts*: int64_t
+    fps_first_dts_idx*: cint
+    fps_last_dts*: int64_t
+    fps_last_dts_idx*: cint
+
+  AVIndexEntry* {.bycopy.} = object
+    pos*: int64_t
+    timestamp*: int64_t
+    flags* {.bitsize: 2.}: cint
+    size* {.bitsize: 30.}: cint
+    min_distance*: cint
+
+  AVStream* {.bycopy.} = object
+    index*: cint
+    id*: cint
+    priv_data*: pointer
+    time_base*: AVRational
+    start_time*: int64_t
+    duration*: int64_t
+    nb_frames*: int64_t
+    disposition*: cint
+    `discard`*: AVDiscard
+    sample_aspect_ratio*: AVRational
+    metadata*: ptr AVDictionary
+    avg_frame_rate*: AVRational
+    attached_pic*: AVPacket
+    side_data*: ptr AVPacketSideData
+    nb_side_data*: cint
+    event_flags*: cint
+    info*: ptr INNER_C_STRUCT_2008934761
+    pts_wrap_bits*: cint
+    first_dts*: int64_t
+    cur_dts*: int64_t
+    last_IP_pts*: int64_t
+    last_IP_duration*: cint
+    probe_packets*: cint
+    codec_info_nb_frames*: cint
+    need_parsing*: AVStreamParseType
+    parser*: ptr AVCodecParserContext
+    last_in_packet_buffer*: ptr AVPacketList
+    probe_data*: AVProbeData
+    pts_buffer*: array[16 + 1, int64_t]
+    index_entries*: ptr AVIndexEntry
+    nb_index_entries*: cint
+    index_entries_allocated_size*: cuint
+    r_frame_rate*: AVRational
+    stream_identifier*: cint
+    interleaver_chunk_size*: int64_t
+    interleaver_chunk_duration*: int64_t
+    request_probe*: cint
+    skip_to_keyframe*: cint
+    skip_samples*: cint
+    start_skip_samples*: int64_t
+    first_discard_sample*: int64_t
+    last_discard_sample*: int64_t
+    nb_decoded_frames*: cint
+    mux_ts_offset*: int64_t
+    pts_wrap_reference*: int64_t
+    pts_wrap_behavior*: cint
+    update_initial_durations_done*: cint
+    pts_reorder_error*: array[16 + 1, int64_t]
+    pts_reorder_error_count*: array[16 + 1, uint8_t]
+    last_dts_for_order_check*: int64_t
+    dts_ordered*: uint8_t
+    dts_misordered*: uint8_t
+    inject_global_side_data*: cint
+    recommended_encoder_configuration*: cstring
+    display_aspect_ratio*: AVRational
+    priv_pts*: ptr FFFrac
+    internal*: ptr AVStreamInternal
+    codecpar*: ptr AVCodecParameters
+
+
+proc av_stream_get_r_frame_rate*(s: ptr AVStream): AVRational {.cdecl,
+    importc: "av_stream_get_r_frame_rate", dynlib: avformatdll.}
+proc av_stream_set_r_frame_rate*(s: ptr AVStream; r: AVRational) {.cdecl,
+    importc: "av_stream_set_r_frame_rate", dynlib: avformatdll.}
+proc av_stream_get_parser*(s: ptr AVStream): ptr AVCodecParserContext {.cdecl,
+    importc: "av_stream_get_parser", dynlib: avformatdll.}
+proc av_stream_get_recommended_encoder_configuration*(s: ptr AVStream): cstring {.
+    cdecl, importc: "av_stream_get_recommended_encoder_configuration",
+    dynlib: avformatdll.}
+proc av_stream_set_recommended_encoder_configuration*(s: ptr AVStream;
+    configuration: cstring) {.cdecl, importc: "av_stream_set_recommended_encoder_configuration",
+                            dynlib: avformatdll.}
+proc av_stream_get_end_pts*(st: ptr AVStream): int64_t {.cdecl,
+    importc: "av_stream_get_end_pts", dynlib: avformatdll.}
+type
+  AVProgram* {.bycopy.} = object
+    id*: cint
+    flags*: cint
+    `discard`*: AVDiscard
+    stream_index*: ptr cuint
+    nb_stream_indexes*: cuint
+    metadata*: ptr AVDictionary
+    program_num*: cint
+    pmt_pid*: cint
+    pcr_pid*: cint
+    start_time*: int64_t
+    end_time*: int64_t
+    pts_wrap_reference*: int64_t
+    pts_wrap_behavior*: cint
+
+  AVChapter* {.bycopy.} = object
+    id*: cint
+    time_base*: AVRational
+    start*: int64_t
+    `end`*: int64_t
+    metadata*: ptr AVDictionary
+
+  av_format_control_message* = proc (s: ptr AVFormatContext; `type`: cint;
+                                  data: pointer; data_size: csize): cint {.cdecl.}
+  AVOpenCallback* = proc (s: ptr AVFormatContext; pb: ptr ptr AVIOContext; url: cstring;
+                       flags: cint; int_cb: ptr AVIOInterruptCB;
+                       options: ptr ptr AVDictionary): cint {.cdecl.}
+  AVDurationEstimationMethod* {.size: sizeof(cint).} = enum
+    AVFMT_DURATION_FROM_PTS, AVFMT_DURATION_FROM_STREAM,
+    AVFMT_DURATION_FROM_BITRATE
+
+
+type
   AVFormatContext* {.bycopy.} = object
     av_class*: ptr AVClass
     iformat*: ptr AVInputFormat
@@ -294,47 +318,6 @@ type
     protocol_blacklist*: cstring
     max_streams*: cint
 
-  av_format_control_message* = proc (s: ptr AVFormatContext; `type`: cint;
-                                  data: pointer; data_size: csize): cint {.cdecl.}
-
-
-  
-
-  
-  AVDeviceCapabilitiesQuery* {.bycopy.} = object
-  AVOpenCallback* = proc (s: ptr AVFormatContext; pb: ptr ptr AVIOContext; url: cstring;
-                       flags: cint; int_cb: ptr AVIOInterruptCB;
-                       options: ptr ptr AVDictionary): cint {.cdecl.}
-  
-
-proc av_get_packet*(s: ptr AVIOContext; pkt: ptr AVPacket; size: cint): cint {.cdecl,
-    importc: "av_get_packet", dynlib: avformatdll.}
-proc av_append_packet*(s: ptr AVIOContext; pkt: ptr AVPacket; size: cint): cint {.cdecl,
-    importc: "av_append_packet", dynlib: avformatdll.}
-
-
-
-
-
-proc av_stream_get_r_frame_rate*(s: ptr AVStream): AVRational {.cdecl,
-    importc: "av_stream_get_r_frame_rate", dynlib: avformatdll.}
-proc av_stream_set_r_frame_rate*(s: ptr AVStream; r: AVRational) {.cdecl,
-    importc: "av_stream_set_r_frame_rate", dynlib: avformatdll.}
-proc av_stream_get_parser*(s: ptr AVStream): ptr AVCodecParserContext {.cdecl,
-    importc: "av_stream_get_parser", dynlib: avformatdll.}
-proc av_stream_get_recommended_encoder_configuration*(s: ptr AVStream): cstring {.
-    cdecl, importc: "av_stream_get_recommended_encoder_configuration",
-    dynlib: avformatdll.}
-proc av_stream_set_recommended_encoder_configuration*(s: ptr AVStream;
-    configuration: cstring) {.cdecl, importc: "av_stream_set_recommended_encoder_configuration",
-                            dynlib: avformatdll.}
-proc av_stream_get_end_pts*(st: ptr AVStream): int64_t {.cdecl,
-    importc: "av_stream_get_end_pts", dynlib: avformatdll.}
-
-
-
-
-
 
 proc av_format_get_probe_score*(s: ptr AVFormatContext): cint {.cdecl,
     importc: "av_format_get_probe_score", dynlib: avformatdll.}
@@ -372,6 +355,11 @@ proc av_format_inject_global_side_data*(s: ptr AVFormatContext) {.cdecl,
 proc av_fmt_ctx_get_duration_estimation_method*(ctx: ptr AVFormatContext): AVDurationEstimationMethod {.
     cdecl, importc: "av_fmt_ctx_get_duration_estimation_method",
     dynlib: avformatdll.}
+type
+  AVPacketList* {.bycopy.} = object
+    pkt*: AVPacket
+    next*: ptr AVPacketList
+
 
 proc avformat_version*(): cuint {.cdecl, importc: "avformat_version",
                                dynlib: avformatdll.}
